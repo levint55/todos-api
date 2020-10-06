@@ -59,6 +59,33 @@ app.delete("/todos/:id", (req, res) => {
   res.json(todos);
 });
 
+app.put("/todos/:id", (req, res) => {
+  var body = _.pick(req.body, 'description', 'completed');
+  var validAttributes = {};
+  var todoId = parseInt(req.params.id, 10);
+  var matchedTodo = _.findWhere(todos, {id: todoId});
+
+  if (!matchedTodo){
+    return res.status(404).send();
+  }
+
+  if (body.hasOwnProperty('completed') && _.isBoolean(body.completed)){
+    validAttributes.completed = body.completed;
+  } else if (body.hasOwnProperty('completed')) {
+    return res.status(400).json({"error": "completed not boolean"});
+  }
+
+  if (body.hasOwnProperty('description') && _.isString(body.description) && body.description.trim().length > 0){
+    validAttributes.description = body.description;
+  } else if (body.hasOwnProperty('description')) {
+    return res.status(400).json({"error": "description not string"});
+  }
+  
+  _.extend(matchedTodo, validAttributes);
+
+  res.json(todos);
+});
+
 app.listen(port, () => {
   console.log("Express running todo API");
 });
