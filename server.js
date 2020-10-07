@@ -17,10 +17,22 @@ app.get("/todos", (req, res) => {
   var query = req.query;
   var filteredTodos = todos;
 
-  if(query.hasOwnProperty('completed') && query.completed === 'true'){
-    filteredTodos = _.where(filteredTodos, {"completed": true});
-  } else if (query.hasOwnProperty('completed') && query.completed === 'false'){
-    filteredTodos = _.where(filteredTodos, {"completed": false})
+  if (query.hasOwnProperty("completed") && query.completed === "true") {
+    filteredTodos = _.where(filteredTodos, { completed: true });
+  } else if (query.hasOwnProperty("completed") && query.completed === "false") {
+    filteredTodos = _.where(filteredTodos, { completed: false });
+  }
+
+  if (
+    query.hasOwnProperty("description") &&
+    _.isString(query.description) &&
+    query.description.trim().length > 0
+  ) {
+    filteredTodos = _.filter(filteredTodos, ({ description }) => {
+      return (
+        description.toLowerCase().indexOf(query.description.toLowerCase()) > -1
+      );
+    });
   }
 
   res.json(filteredTodos);
@@ -28,7 +40,7 @@ app.get("/todos", (req, res) => {
 
 app.get("/todos/:id", (req, res) => {
   var todoId = parseInt(req.params.id, 10);
-  var matchedTodo = _.findWhere(todos, {id: todoId});
+  var matchedTodo = _.findWhere(todos, { id: todoId });
 
   if (matchedTodo) {
     res.json(matchedTodo);
@@ -38,9 +50,13 @@ app.get("/todos/:id", (req, res) => {
 });
 
 app.post("/todos", (req, res) => {
-  var body = _.pick(req.body, 'description', 'completed');
+  var body = _.pick(req.body, "description", "completed");
 
-  if (!_.isBoolean(body.completed) || !_.isString(body.description) || body.description.trim().length === 0) {
+  if (
+    !_.isBoolean(body.completed) ||
+    !_.isString(body.description) ||
+    body.description.trim().length === 0
+  ) {
     return res.status(400).send();
   }
 
@@ -57,10 +73,10 @@ app.post("/todos", (req, res) => {
 
 app.delete("/todos/:id", (req, res) => {
   var todoId = parseInt(req.params.id, 10);
-  var matchedTodo = _.findWhere(todos, {id: todoId});
+  var matchedTodo = _.findWhere(todos, { id: todoId });
 
-  if (!matchedTodo){
-    res.status(404).json({"error": "no todo found with that id"});
+  if (!matchedTodo) {
+    res.status(404).json({ error: "no todo found with that id" });
   } else {
     todos = _.without(todos, matchedTodo);
   }
@@ -69,27 +85,31 @@ app.delete("/todos/:id", (req, res) => {
 });
 
 app.put("/todos/:id", (req, res) => {
-  var body = _.pick(req.body, 'description', 'completed');
+  var body = _.pick(req.body, "description", "completed");
   var validAttributes = {};
   var todoId = parseInt(req.params.id, 10);
-  var matchedTodo = _.findWhere(todos, {id: todoId});
+  var matchedTodo = _.findWhere(todos, { id: todoId });
 
-  if (!matchedTodo){
+  if (!matchedTodo) {
     return res.status(404).send();
   }
 
-  if (body.hasOwnProperty('completed') && _.isBoolean(body.completed)){
+  if (body.hasOwnProperty("completed") && _.isBoolean(body.completed)) {
     validAttributes.completed = body.completed;
-  } else if (body.hasOwnProperty('completed')) {
-    return res.status(400).json({"error": "completed not boolean"});
+  } else if (body.hasOwnProperty("completed")) {
+    return res.status(400).json({ error: "completed not boolean" });
   }
 
-  if (body.hasOwnProperty('description') && _.isString(body.description) && body.description.trim().length > 0){
+  if (
+    body.hasOwnProperty("description") &&
+    _.isString(body.description) &&
+    body.description.trim().length > 0
+  ) {
     validAttributes.description = body.description;
-  } else if (body.hasOwnProperty('description')) {
-    return res.status(400).json({"error": "description not string"});
+  } else if (body.hasOwnProperty("description")) {
+    return res.status(400).json({ error: "description not string" });
   }
-  
+
   _.extend(matchedTodo, validAttributes);
 
   res.json(todos);
