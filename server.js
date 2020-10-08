@@ -42,22 +42,17 @@ app.get("/todos", (req, res) => {
 app.get("/todos/:id", (req, res) => {
   var todoId = parseInt(req.params.id, 10);
 
-  if (!todoId) {
-    return res.status(400).send();
-  }
-
   db.todo
     .findById(todoId)
     .then((todo) => {
-      if (todo) {
-        res.json(todo);
+      if (!!todo) {
+        res.json(todo.toJSON());
       } else {
         res.status(404).send();
       }
     })
     .catch((e) => {
-      console.log(e);
-      res.status(400).send();
+      res.status(500).send();
     });
 });
 
