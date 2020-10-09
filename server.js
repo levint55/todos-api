@@ -16,12 +16,12 @@ app.get("/", (req, res) => {
 
 app.get("/todos", (req, res) => {
   var query = req.query;
-  var filteredTodos = todos;
+  var where = {};
 
   if (query.hasOwnProperty("completed") && query.completed === "true") {
-    filteredTodos = _.where(filteredTodos, { completed: true });
+    where.completed = true;
   } else if (query.hasOwnProperty("completed") && query.completed === "false") {
-    filteredTodos = _.where(filteredTodos, { completed: false });
+    where.completed = false;
   }
 
   if (
@@ -29,14 +29,20 @@ app.get("/todos", (req, res) => {
     _.isString(query.description) &&
     query.description.trim().length > 0
   ) {
-    filteredTodos = _.filter(filteredTodos, ({ description }) => {
-      return (
-        description.toLowerCase().indexOf(query.description.toLowerCase()) > -1
-      );
-    });
+    where.description = {
+      $like: `%${query.description}%`,
+    };
   }
 
-  res.json(filteredTodos);
+  db.todo
+    .findAll({ where: where })
+    .then((todos) => {
+      res.json(todos);
+    })
+    .catch((e) => {
+      console.log(e);
+      res.status(500).send();
+    });
 });
 
 app.get("/todos/:id", (req, res) => {
@@ -45,6 +51,7 @@ app.get("/todos/:id", (req, res) => {
   db.todo
     .findById(todoId)
     .then((todo) => {
+      // dua "!" buat jadiin object jadi truthty
       if (!!todo) {
         res.json(todo.toJSON());
       } else {
