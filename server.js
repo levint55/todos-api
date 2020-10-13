@@ -137,7 +137,7 @@ app.post("/users", (req, res) => {
     .create(body)
     .then(
       function (user) {
-        res.json(user.toJSON());
+        res.json(user.toPublicJSON());
       },
       function (e) {
         res.status(400).json(e);
