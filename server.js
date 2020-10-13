@@ -130,6 +130,24 @@ app.put("/todos/:id", function (req, res) {
   );
 });
 
+app.post("/users", (req, res) => {
+  var body = _.pick(req.body, "email", "password");
+
+  db.user
+    .create(body)
+    .then(
+      function (user) {
+        res.json(user.toJSON());
+      },
+      function (e) {
+        res.status(400).json(e);
+      }
+    )
+    .catch((e) => {
+      res.status(500).send();
+    });
+});
+
 db.sequelize.sync().then(function () {
   app.listen(PORT, function () {
     console.log("Express listening on port " + PORT + "!");
