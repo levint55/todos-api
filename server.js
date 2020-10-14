@@ -156,7 +156,13 @@ app.post("/users/login", (req, res) => {
     .authenticate(body)
     .then(
       (user) => {
-        res.json(user.toPublicJSON());
+        var token = user.generateToken("authentication");
+
+        if (token) {
+          res.header("Auth", token).json(user.toPublicJSON());
+        } else {
+          res.status(401).send();
+        }
       },
       () => {
         res.status(401).send();
